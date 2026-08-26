@@ -263,6 +263,32 @@
   }
   details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   details p { line-height: 1.55; margin: 6px 0; }
+  .bottle-table {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .bottle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+  .bottle-row .size {
+    color: var(--text);
+    font-size: 0.88rem;
+  }
+  .bottle-row .amount {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
   footer {
     text-align: center;
     color: var(--muted);
@@ -341,6 +367,12 @@
   <p>O volume de speise é o quanto desse mosto é preciso para gerar o CO₂ que falta &mdash; e como ele já é parte do lote, o volume principal a fermentar é <strong>volume final − speise</strong>.</p>
 </details>
 
+<details id="advancedDetails">
+  <summary>Avançado: dosar direto nas garrafas</summary>
+  <p class="note" style="margin-top:0;">Não é o uso normal &mdash; a forma correta é adicionar toda a speise misturada de volta ao lote antes do envase. Isso aqui é só se você for dosar garrafa por garrafa, na mão.</p>
+  <div class="bottle-table" id="bottleTable"></div>
+</details>
+
 <footer>uso próprio &middot; aproximação para cerveja caseira</footer>
 
 <script>
@@ -387,6 +419,16 @@ function residualCO2(tempC) {
 
 const $ = id => document.getElementById(id);
 
+const BOTTLE_SIZES_ML = [650, 600, 550, 500, 375, 350, 300];
+
+function updateBottleTable(speiseVol, batchVol) {
+  const ratio = batchVol > 0 ? speiseVol / batchVol : 0;
+  $('bottleTable').innerHTML = BOTTLE_SIZES_ML.map(size => {
+    const perBottle = ratio * size;
+    return `<div class="bottle-row"><span class="size">${size} ml</span><span class="amount">${perBottle.toFixed(0)} ml speise</span></div>`;
+  }).join('');
+}
+
 function calc() {
   const batchVol = parseFloat($('batchVol').value) || 0;
   const ogRaw = parseFloat($('og').value);
@@ -410,6 +452,7 @@ function calc() {
     $('speiseVal').textContent = '0';
     $('speiseVal2').textContent = '0 L';
     $('mainVal').textContent = batchVol.toFixed(1) + ' L';
+    updateBottleTable(0, batchVol);
     return;
   }
 
@@ -430,6 +473,7 @@ function calc() {
   $('speiseVal').textContent = speiseVol.toFixed(2);
   $('speiseVal2').textContent = speiseVol.toFixed(2) + ' L';
   $('mainVal').textContent = mainVol.toFixed(2) + ' L';
+  updateBottleTable(speiseVol, batchVol);
 }
 
 document.querySelectorAll('input').forEach(el => el.addEventListener('input', calc));
