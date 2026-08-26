@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Calculadora de Speise</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Speise">
+<meta name="theme-color" content="#f5f0e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171310" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e6;
+    --card: #fffdf9;
+    --card-border: #e5dac4;
+    --text: #2a2118;
+    --muted: #7d6f5c;
+    --accent: #a8631a;
+    --accent-ink: #ffffff;
+    --good: #4f7942;
+    --good-bg: rgba(79,121,66,0.12);
+    --warn: #a8442a;
+    --warn-bg: rgba(168,68,42,0.12);
+    --input-bg: #faf5eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171310;
+      --card: #211a14;
+      --card-border: #3a2e21;
+      --text: #f1e7d8;
+      --muted: #a9977e;
+      --accent: #e2a13b;
+      --accent-ink: #1c1108;
+      --good: #86c26f;
+      --good-bg: rgba(134,194,111,0.14);
+      --warn: #e0865f;
+      --warn-bg: rgba(224,134,95,0.14);
+      --input-bg: #241d16;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171310;
+    --card: #211a14;
+    --card-border: #3a2e21;
+    --text: #f1e7d8;
+    --muted: #a9977e;
+    --accent: #e2a13b;
+    --accent-ink: #1c1108;
+    --good: #86c26f;
+    --good-bg: rgba(134,194,111,0.14);
+    --warn: #e0865f;
+    --warn-bg: rgba(224,134,95,0.14);
+    --input-bg: #241d16;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(48px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 4px 0 3px;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h1 .mark {
+    color: var(--accent);
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 22px;
+    line-height: 1.5;
+    max-width: 34ch;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 18px 16px;
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin: 0 0 14px;
+    font-weight: 600;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.92rem;
+    margin-bottom: 6px;
+  }
+  label .hint {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 400;
+  }
+  .unit-toggle {
+    display: flex;
+    gap: 4px;
+  }
+  .unit-btn {
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .unit-btn.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .unit-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  input[type="number"] {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px 12px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    margin-top: 4px;
+  }
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+  }
+  .row .field { flex: 1; }
+  .result-main {
+    text-align: center;
+    padding: 6px 0 14px;
+  }
+  .result-main .value {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 2.7rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1.05;
+  }
+  .result-main .unit {
+    font-size: 1.05rem;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+  .result-main .label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .split {
+    display: flex;
+    border-top: 1px solid var(--card-border);
+    margin-top: 8px;
+    padding-top: 14px;
+  }
+  .split > div {
+    flex: 1;
+    text-align: center;
+  }
+  .split .num {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+  .split .lbl {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+  .split .sep {
+    width: 1px;
+    background: var(--card-border);
+    margin: 2px 4px;
+  }
+  .note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .warn-box {
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+    color: var(--warn);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+    line-height: 1.45;
+  }
+  details {
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  details summary {
+    cursor: pointer;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  details p { line-height: 1.55; margin: 6px 0; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    opacity: 0.55;
+    font-size: 0.72rem;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<h1><span class="mark">◐</span> Calculadora de Speise</h1>
+<p class="subtitle">Carbonatação natural reservando parte do próprio mosto. O volume de speise sai do lote &mdash; a calculadora já desconta isso do volume a fermentar.</p>
+
+<div class="card">
+  <h2>Lote</h2>
+  <div class="field">
+    <label>Volume final da cerveja <span class="hint">litros</span></label>
+    <input type="number" id="batchVol" inputmode="decimal" value="20" min="0" step="0.5">
+  </div>
+  <div class="field">
+    <label>Densidade original do mosto (OG)
+      <span class="unit-toggle" role="group" aria-label="Unidade de densidade">
+        <button type="button" class="unit-btn active" id="unitSg" data-unit="sg">SG</button>
+        <button type="button" class="unit-btn" id="unitPlato" data-unit="plato">°P</button>
+      </span>
+    </label>
+    <input type="number" id="og" inputmode="decimal" value="1.050" min="1.000" step="0.001">
+  </div>
+  <div class="field">
+    <label>Atenuação aparente esperada <span class="hint" id="attLabel">75%</span></label>
+    <input type="range" id="attenuation" min="40" max="90" step="1" value="75">
+  </div>
+</div>
+
+<div class="card">
+  <h2>Carbonatação</h2>
+  <div class="row">
+    <div class="field">
+      <label>Alvo <span class="hint">vol CO₂</span></label>
+      <input type="number" id="targetCO2" inputmode="decimal" value="2.4" min="0" step="0.1">
+    </div>
+    <div class="field">
+      <label>Temp. no envase <span class="hint">°C</span></label>
+      <input type="number" id="temp" inputmode="decimal" value="20" step="1">
+    </div>
+  </div>
+</div>
+
+<div id="warnBox" class="warn-box" style="display:none;"></div>
+
+<div class="card">
+  <h2>Resultado</h2>
+  <div class="result-main">
+    <span class="value" id="speiseVal">0</span><span class="unit">L de speise</span>
+    <div class="label">mosto original a reservar sem fermentar</div>
+  </div>
+  <div class="split">
+    <div>
+      <div class="num" id="mainVal">0 L</div>
+      <div class="lbl">coletar e fermentar<br>(mosto principal)</div>
+    </div>
+    <div class="sep"></div>
+    <div>
+      <div class="num" id="speiseVal2">0 L</div>
+      <div class="lbl">reservar à parte<br>(vira speise)</div>
+    </div>
+  </div>
+  <p class="note">Reserve a speise assim que puxar o mosto (antes do fermento), refrigere ou congele, e adicione fervida/pasteurizada ao envasar &mdash; ela fará o fermento residual carbonatar a cerveja.</p>
+</div>
+
+<details>
+  <summary>Como é calculado?</summary>
+  <p>CO₂ residual dissolvido no envase é estimado pela temperatura (Henry). A diferença até o alvo define quanto CO₂ ainda falta produzir.</p>
+  <p>A densidade original é convertida em °Plato (extrato) e multiplicada pela atenuação esperada para saber quanto açúcar fermentável tem cada litro de mosto reservado.</p>
+  <p>O volume de speise é o quanto desse mosto é preciso para gerar o CO₂ que falta &mdash; e como ele já é parte do lote, o volume principal a fermentar é <strong>volume final − speise</strong>.</p>
+</details>
+
+<footer>uso próprio &middot; aproximação para cerveja caseira</footer>
+
+<script>
+function sgToPlato(sg) {
+  return -616.868 + 1111.14*sg - 630.272*sg*sg + 135.997*sg*sg*sg;
+}
+
+function platoToSg(targetPlato) {
+  let sg = 1 + targetPlato/258.6;
+  for (let i = 0; i < 20; i++) {
+    const f = sgToPlato(sg) - targetPlato;
+    const fPrime = (sgToPlato(sg + 1e-6) - sgToPlato(sg - 1e-6)) / 2e-6;
+    sg -= f / fPrime;
+  }
+  return sg;
+}
+
+let ogUnit = 'sg';
+
+function setOgUnit(unit) {
+  if (unit === ogUnit) return;
+  const ogInput = $('og');
+  const current = parseFloat(ogInput.value);
+  if (!isNaN(current)) {
+    if (unit === 'plato') {
+      ogInput.value = sgToPlato(current).toFixed(1);
+    } else {
+      ogInput.value = platoToSg(current).toFixed(3);
+    }
+  }
+  ogUnit = unit;
+  ogInput.step = unit === 'sg' ? '0.001' : '0.1';
+  ogInput.min = unit === 'sg' ? '1.000' : '0';
+  $('unitSg').classList.toggle('active', unit === 'sg');
+  $('unitPlato').classList.toggle('active', unit === 'plato');
+  calc();
+}
+
+function residualCO2(tempC) {
+  const f = tempC * 9/5 + 32;
+  const v = 3.0378 - 0.050062*f + 0.00026555*f*f;
+  return Math.max(v, 0);
+}
+
+const $ = id => document.getElementById(id);
+
+function calc() {
+  const batchVol = parseFloat($('batchVol').value) || 0;
+  const ogRaw = parseFloat($('og').value);
+  const atten = parseFloat($('attenuation').value) || 0;
+  const targetCO2 = parseFloat($('targetCO2').value) || 0;
+  const temp = parseFloat($('temp').value);
+
+  $('attLabel').textContent = atten + '%';
+
+  const plato = ogUnit === 'sg' ? sgToPlato(isNaN(ogRaw) ? 1 : ogRaw) : (ogRaw || 0);
+  const resCO2 = residualCO2(temp);
+  const diff = Math.max(targetCO2 - resCO2, 0);
+
+  const warnBox = $('warnBox');
+
+  if (plato <= 0 || atten <= 0) {
+    warnBox.style.display = 'block';
+    warnBox.textContent = ogUnit === 'sg'
+      ? 'Densidade original precisa ser maior que 1.000.'
+      : 'Densidade original precisa ser maior que 0 °P.';
+    $('speiseVal').textContent = '0';
+    $('speiseVal2').textContent = '0 L';
+    $('mainVal').textContent = batchVol.toFixed(1) + ' L';
+    return;
+  }
+
+  if (targetCO2 <= resCO2) {
+    warnBox.style.display = 'block';
+    warnBox.textContent = 'CO₂ residual estimado (' + resCO2.toFixed(2) + ' vol) já atinge o alvo nessa temperatura. Speise não é necessária.';
+  } else {
+    warnBox.style.display = 'none';
+  }
+
+  const sugarNeeded_g = 4 * batchVol * diff;
+  const fermentableExtractPerL = 10 * plato * (atten/100);
+  let speiseVol = fermentableExtractPerL > 0 ? sugarNeeded_g / fermentableExtractPerL : 0;
+  speiseVol = Math.min(speiseVol, batchVol);
+
+  const mainVol = Math.max(batchVol - speiseVol, 0);
+
+  $('speiseVal').textContent = speiseVol.toFixed(2);
+  $('speiseVal2').textContent = speiseVol.toFixed(2) + ' L';
+  $('mainVal').textContent = mainVol.toFixed(2) + ' L';
+}
+
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', calc));
+$('unitSg').addEventListener('click', () => setOgUnit('sg'));
+$('unitPlato').addEventListener('click', () => setOgUnit('plato'));
+calc();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+
+</body>
+</html>
