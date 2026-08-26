@@ -99,7 +99,6 @@
     font-size: 0.9rem;
     margin: 0 0 22px;
     line-height: 1.5;
-    max-width: 34ch;
   }
   .card {
     background: var(--card);
@@ -292,9 +291,18 @@
   footer {
     text-align: center;
     color: var(--muted);
-    opacity: 0.55;
+    opacity: 0.7;
     font-size: 0.72rem;
     margin-top: 24px;
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  footer a:hover,
+  footer a:focus-visible {
+    text-decoration: underline;
   }
 </style>
 </head>
@@ -373,7 +381,7 @@
   <div class="bottle-table" id="bottleTable"></div>
 </details>
 
-<footer>uso próprio &middot; aproximação para cerveja caseira</footer>
+<footer>desenvolvido por Henrique Boaventura &middot; parte do <a href="https://brassagemforte.com.br" target="_blank" rel="noopener">Brassagem Forte</a></footer>
 
 <script>
 function sgToPlato(sg) {

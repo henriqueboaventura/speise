@@ -1,4 +1,4 @@
-const CACHE = 'speise-v2';
+const CACHE = 'speise-v3';
 const ASSETS = [
   './',
   './index.html',
