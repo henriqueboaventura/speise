@@ -329,6 +329,7 @@
   <div class="field">
     <label>Atenuação aparente esperada <span class="hint" id="attLabel">75%</span></label>
     <input type="range" id="attenuation" min="40" max="90" step="1" value="75">
+    <p class="note">Use o <strong>limite de atenuação</strong> do mosto com o fermento que vai carbonatar. Se a cerveja ainda não chegou ao limite, ela tem açúcar sobrando e pode carbonatar demais: na dúvida, faça o teste de fermentação forçada.</p>
   </div>
 </div>
 
@@ -371,8 +372,8 @@
 <details>
   <summary>Como é calculado?</summary>
   <p>CO₂ residual dissolvido no envase é estimado pela temperatura (Henry). A diferença até o alvo define quanto CO₂ ainda falta produzir.</p>
-  <p>A densidade original é convertida em °Plato (extrato) e multiplicada pela atenuação esperada para saber quanto açúcar fermentável tem cada litro de mosto reservado.</p>
-  <p>O volume de speise é o quanto desse mosto é preciso para gerar o CO₂ que falta &mdash; e como ele já é parte do lote, o volume principal a fermentar é <strong>volume final − speise</strong>.</p>
+  <p>A densidade original vira extrato por litro (°P × densidade × 10). Só conta a parte que fermenta de verdade: a atenuação real, cerca de 82% da aparente.</p>
+  <p>Pela equação de Balling, cerca de 4,3 g de extrato fermentado por litro geram 1 volume de CO₂. A speise entra sem CO₂, então o residual só vale para a cerveja. Como ela já é parte do lote, o volume principal a fermentar é <strong>volume final − speise</strong>.</p>
 </details>
 
 <details id="advancedDetails">
@@ -471,9 +472,14 @@ function calc() {
     warnBox.style.display = 'none';
   }
 
-  const sugarNeeded_g = 4 * batchVol * diff;
-  const fermentableExtractPerL = 10 * plato * (atten/100);
-  let speiseVol = fermentableExtractPerL > 0 ? sugarNeeded_g / fermentableExtractPerL : 0;
+  // Balanço de Balling: extrato por litro = °P × SG × 10; fermenta o extrato real
+  // (atenuação real ≈ 0,8192 × aparente); 4,27 g de extrato por volume de CO₂ por litro.
+  // A speise entra sem CO₂, então o residual só vale para a cerveja (V − S):
+  // alvo·V = residual·(V − S) + k·S  →  S = V·(alvo − residual) / (k − residual)
+  const sg = ogUnit === 'sg' ? ogRaw : platoToSg(plato);
+  const fermentableExtractPerL = 10 * plato * sg * 0.8192 * (atten/100);
+  const k = fermentableExtractPerL / 4.27; // vol·L de CO₂ que cada litro de speise gera
+  let speiseVol = k > resCO2 ? batchVol * diff / (k - resCO2) : batchVol;
   speiseVol = Math.min(speiseVol, batchVol);
 
   const mainVol = Math.max(batchVol - speiseVol, 0);
